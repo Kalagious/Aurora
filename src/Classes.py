@@ -20,14 +20,18 @@ class Target:
 		self.name = ""
 		self.domains = []
 		self.boxes = []
+		self.dns = []
 		self.owned = False
 		self.notes = []
+		self.object = "Target"
+
 
 	def json(self):
 		tmp = {
 			"name" : self.name,
 			"domains" : array2json(self.domains),
 			"boxes" : array2json(self.boxes),
+			"dns" : self.dns,
 			"owned" : self.owned,
 			"notes" : self.notes,
 			"class" : "Target"
@@ -42,20 +46,22 @@ class Box:
 		self.name = ""
 		self.hostnames = []
 		self.ips = []
+		self.enumeration = []
 		self.services = []
-		self.localUsers = []
-		self.generalVectors = []
+		self.users = []
+		self.vectors = []
 		self.owned = False
 		self.notes = []
+		self.object = "Box"
 
 	def addUser(self, user):
-		self.localUsers.append(user)
+		self.users.append(user)
 		user.pBoxes.append(self.name)
 		return user
 
 	def newUser(self):
 		newUser = User()
-		self.localUsers.append(newUser)
+		self.users.append(newUser)
 		newUser.pBoxes.append(self.name)
 		return newUser
 
@@ -64,9 +70,10 @@ class Box:
 			"name" : self.name,
 			"hostnames" : self.hostnames,
 			"ips" : self.ips,
+			"enumeration" : array2json(self.enumeration),
 			"services" : array2json(self.services),
-			"localUsers" : array2json(self.localUsers),
-			"generalVectors" : array2json(self.generalVectors),
+			"users" : array2json(self.users),
+			"vectors" : array2json(self.vectors),
 			"notes" : self.notes,
 			"class" : "Box"
 		}
@@ -78,15 +85,21 @@ class Domain:
 	def __init__(self):
 		self.name = ""
 		self.pBoxes = []
-		self.domainUsers = []
+		self.users = []
+		self.enumeration = []
+		self.vectors = []
 		self.owned = False
 		self.notes = []
+		self.object = "Domain"
+
 
 	def json(self):
 		tmp = {
 			"name" : self.name,
 			"pBoxes" : self.pBoxes,
-			"domainUsers" : self.domainUsers,
+			"users" : array2json(self.users),
+			"enumeration" : array2json(self.enumeration),
+			"vectors" : array2json(self.vectors),
 			"owned" : self.owned,
 			"notes" : self.notes,
 			"class" : "Domain"
@@ -99,6 +112,7 @@ class Service:
 	def __init__(self):
 		self.name = []
 		self.ports = []
+		self.enumeration = []
 		self.credentials = []
 		self.pUsers = []
 		self.pOwner = ""
@@ -106,11 +120,14 @@ class Service:
 		self.pBox = ""
 		self.owned = False
 		self.notes = []
+		self.object = "Service"
+
 
 	def json(self):
 		tmp = {
 			"name" : self.name,
 			"ports" : self.ports,
+			"enumeration" : array2json(self.enumeration),
 			"credentials" : array2json(self.credentials),
 			"pUsers" : self.pUsers,
 			"pOwner" : self.pOwner,
@@ -126,16 +143,20 @@ class Service:
 class Credential:
 	def __init__(self):
 		self.name = ""
+		self.username = ""
 		self.pServices = []
 		self.pUsers = []
 		self.password = ""
 		self.hash = ""
 		self.salt = ""
 		self.notes = []
+		self.object = "Credential"
+
 
 	def json(self):
 		tmp = {
 			"name" : self.name,
+			"username" : self.username,
 			"pServices" : self.pServices,
 			"pUsers" : self.pUsers,
 			"password" : self.password,
@@ -151,6 +172,7 @@ class User:
 	def __init__(self):
 		self.name = ""
 		self.credentials = []
+		self.enumeration = []
 		self.pServices = []
 		self.pBoxes = []
 		self.pDomain = ""
@@ -158,6 +180,7 @@ class User:
 		self.access = []
 		self.owned = False
 		self.notes = []
+		self.object = "User"
 
 	def addCredential(self, cred):
 		self.credentials.append(cred)
@@ -174,7 +197,8 @@ class User:
 		tmp = {
 			"name" : self.name,
 			"credentials" : array2json(self.credentials),
-			"pServices" : array2json(self.pServices),
+			"enumeration" : array2json(self.enumeration),
+			"pServices" : self.pServices,
 			"pBoxes" : self.pBoxes,
 			"pDomain" : self.pDomain,
 			"vectors" : array2json(self.vectors),
@@ -189,17 +213,18 @@ class User:
 class Vector:
 	def __init__(self):
 		self.name = ""
-		self.enumeration = []
 		self.exploits = []
 		self.priority = 1000;
+		self.pServices = []
 		self.notes = []
+		self.object = "Vector"
 
 	def json(self):
 		tmp = {
 			"name" : self.name,
-			"enumeration" : array2json(self.enumeration),
 			"exploits" : array2json(self.exploits),
 			"priority" : self.priority,
+			"pServices" : self.pServices,
 			"notes" : self.notes,
 			"class" : "Vector"
 		}
@@ -212,9 +237,10 @@ class Enumeration:
 		self.name = ""
 		self.type = []
 		self.tools = []
+		self.pServices = []
 		self.data = ""
-		self.pVector = ""
 		self.notes = []
+		self.object = "Enumeration"
 
 
 	def json(self):
@@ -222,8 +248,8 @@ class Enumeration:
 			"name" : self.name,
 			"type" : self.type,
 			"tool" : self.tools,
+			"pServices" : self.pServices,
 			"data" : self.data,
-			"pVector" : self.pVector,
 			"notes" : self.notes,
 			"class" : "Enumeration"
 		}
@@ -233,18 +259,22 @@ class Enumeration:
 
 
 class Exploit:
-	name = []
-	pVector = ""
-	type = []
-	tool = []
-	cmd = ""
-	notes = []
+	def __init__(self):
+		self.name = []
+		self.pVector = ""
+		self.pServices = []
+		self.type = []
+		self.tool = []
+		self.cmd = ""
+		self.notes = []
+		self.object = "Exploit"
 
 
 	def json(self):
 		tmp = {
 			"name" : self.name,
 			"pVector" : self.pVector,
+			"pServices" : self.pServices,
 			"type" : self.type,
 			"tool" : self.tool,
 			"cmd" : self.cmd,
@@ -253,3 +283,11 @@ class Exploit:
 		}
 		return cleanjson(json.dumps(tmp))
 
+class Pointer:
+	def __init__(self, inPointer):
+		self.pointer = inPointer
+	def json(self):
+		tmp = {
+			"pointer" : self.pointer,
+		}
+		return cleanjson(json.dumps(tmp))

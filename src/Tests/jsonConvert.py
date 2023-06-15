@@ -26,6 +26,8 @@ def randomCredential():
 	cred.password = "goodpassword123"
 	return cred
 
+
+
 def randomBox():
 	box = Box()
 	box.name = randomfromlist(computernames)
@@ -36,9 +38,6 @@ def randomBox():
 	return box
 
 
-
-
-
 def randomTarget():
 	target = Target()
 	for i in range(1, 5):
@@ -47,7 +46,7 @@ def randomTarget():
 	return target
 
 
-
-
-
-
+target = randomTarget()
+assign(randomBox(), target)
+target.boxes.append(randomBox())
+print(target.json())
