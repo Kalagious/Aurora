@@ -1,18 +1,110 @@
 import json
 from Classes import *
-from Commands import*
+target = Target()
+
+from Filesystem import *
+import os
 
 
-def getUsersFromTarget(target):
+def addMatchingArrays(array1, array2, names):
+	if len(array1):
+		if array1[0].object in names or "All" in names:
+			array2.extend(array1)
+
+
+def getTargets():
+	targets = {}
+	for root, directories, contents in os.walk(config.targetsPath, topdown=False):
+		for item in contents:
+			if ".json" in item:
+				targets[item.replace(".json","")] = (os.path.join(root, item)) 
+	return targets
+
+
+def getByClass(names):
+	items = []	
+	addMatchingArrays(target.boxes, items, names)
+
 	users = []
+	services = []
+	attacks = []
+	credentials = []
+	vectors = []
+	enumeration = []	
+	notes = []
+	notes.extend(target.notes)
 
 	for box in target.boxes:
-		users.extend(box.localUsers)
+		users.extend(box.users)
+		notes.extend(box.notes)
+		services.extend(box.services)
+		vectors.extend(box.vectors)
+		enumeration.extend(box.enumeration)
+		notes.extend(box.notes)
+
 
 	for domain in target.domains:
-		users.extend(domain.domainUsers)
+		users.extend(domain.users)
+		notes.extend(domain.notes)
+		vectors.extend(domain.vectors)
+		enumeration.extend(domain.enumeration)
+		notes.extend(domain.notes)
+
+
+	for service in services:
+		vectors.extend(service.vectors)
+		credentials.extend(service.credentials)
+		enumeration.extend(service.enumeration)
+		notes.extend(service.notes)
+
+
+	for user in users:
+		vectors.extend(user.vectors)
+		credentials.extend(user.credentials)
+		enumeration.extend(user.enumeration)
+		notes.extend(user.notes)
+
+
+	for vector in vectors:
+		attacks.extend(vector.attacks)
+		notes.extend(vector.notes)
+
+
+	addMatchingArrays(users, items, names)
+	addMatchingArrays(services, items, names)
+	addMatchingArrays(target.domains, items, names)
+	addMatchingArrays(attacks, items, names)
+	addMatchingArrays(credentials, items, names)
+	addMatchingArrays(vectors, items, names)
+	addMatchingArrays(enumeration, items, names)
+	addMatchingArrays(notes, items, names)
+
+	return items
+
+
+def getByNames(names):
+	allItems = getByClass("All")
+	items = []
+	for item in allItems:
+		#print(item.json())
+		if item.name in names:
+			items.append(item)
+				
+	return items
+
+
+
+def getUsersFromTarget(itarget):
+	users = []
+
+	for box in itarget.boxes:
+		users.extend(box.users)
+
+	for domain in itarget.domains:
+		users.extend(domain.users)
 
 	return users
+
 
 def getNamesFromArray(array):
 	names = []
@@ -26,6 +118,7 @@ def getUserFromName(target, username):
 			return user
 
 	return None
+
 
 
 def assign(item, parent, logging = True):
@@ -92,10 +185,10 @@ def assign(item, parent, logging = True):
 			else:
 				output = "Type Error"
 
-		case "Exploit":
+		case "attack":
 			if parent.object in ["Vector"]:
-				if item.name not in getNamesFromArray(parent.exploits):
-					parent.exploits.append(item)
+				if item.name not in getNamesFromArray(parent.attacks):
+					parent.attacks.append(item)
 					output = "Success"
 			else:
 				output = "Type Error"
@@ -129,9 +222,6 @@ def assign(item, parent, logging = True):
 			output = " [!] {} can not be assigned.\n".format(item.object)
 		case "":
 			output = " [!] {} has already been assigned to {}.\n".format(item.name, parent.name)
-
-
-
 
 	if (logging):
 		print(output)
